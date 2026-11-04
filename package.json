@@ -1,13 +1,30 @@
 {
   "name": "dsh-mew-key",
-  "version": "0.1.2",
-  "description": "Mew Key — a floating paw button above the composer submit action for DeepSeek Harness Web.",
+  "version": "0.1.5",
+  "description": "Mew Key — an inline paw button in the composer toolbar; one click makes the agent meow once and say what it is doing.",
   "license": "MIT",
+  "author": "Mew Key contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LunaticLegacy/dsh-mew-key.git"
+  },
+  "homepage": "https://github.com/LunaticLegacy/dsh-mew-key#readme",
+  "bugs": {
+    "url": "https://github.com/LunaticLegacy/dsh-mew-key/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "meow"
+  ],
   "type": "module",
   "main": "./index.js",
   "exports": {
     ".": "./index.js",
     "./client": "./lib/client.js",
+    "./lib/client.js": "./lib/client.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -16,6 +33,8 @@
     "src/client.tsx",
     "cordis.patch.yml",
     "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
     "preview.html"
   ],
   "dsh": {

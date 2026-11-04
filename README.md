@@ -1,112 +1,137 @@
-# Mew Key · DSH 插件 v0.1.2
+<p align="center">
+  <img src="Mew_Key_Logo_03.png" width="132" alt="Mew Key logo">
+</p>
 
-> **给正在工作的 Agent 按一下喵键。**
+<h1 align="center">Mew Key</h1>
 
-专门为 **DeepSeek Harness Web (DSH)** 编写的可安装 Cordis Bundle 插件，带有独立的浏览器 UI。不是 Angelus 插件，也不是纯 HTML Demo。
+<p align="center"><strong>给正在工作的 Agent 按一下喵键。</strong></p>
+
+<p align="center">
+  输入框工具栏里多一只猫爪，点一下，Agent 就软软地喵一声，顺手告诉你它此刻在做什么。
+</p>
+
+<p align="center">
+  <code>DSH 0.2.x</code> · <code>MIT</code> · <code>单文件客户端插件</code> · <code>零网络请求</code>
+</p>
+
+![Mew Key 在输入框工具栏中的样子](preview-one-click.png)
+
+---
+
+## 为什么会有这个
+
+Agent 跑长任务时，你只能盯着滚动的工具调用猜它到底在干嘛。打断它吧，代价太大；不打断吧，心里没底。
+
+Mew Key 给了一个介于两者之间的动作：**轻轻戳它一下**。它会在下一个安全的模型步骤里撒娇一声，用一句话汇报当前进度，然后继续干活——不改计划、不动文件、不偏离任务。
+
+既是状态探针，也是个没什么用的可爱玩具。
 
 ## 功能
 
-- 输入框右下角发送按钮正上方出现 **单猫爪圆形按钮**；点击弹出紧凑控制面板，不再占用会话标题栏。
-- **温和插话（默认）**：使用官方 `session/prompt` 的 `mode: 'steer'`，下一次模型步骤尝试「喵一下，再继续原任务」。不终止正在运行的工具。
-- **立即中断**：官方 `session/cancel`（保留等待中的普通输入） → `session/wait` 等待空闲 → `session/prompt` 发起新的喵叫轮次。不会擅自自动恢复原任务。
-- 请求当前工作语言下的一声猫叫；中文「喵。」、英文「Meow.」、日语「にゃー。」等。最终自然语言由模型决定，**并非确定性字符串输出**。
-- 在客户端权限不足时隐藏触发按钮或禁用中断选项；所有操作只针对当前会话。
-- 支持 Escape / 点击面板外部关闭、执行中防止重复触发、动画减少偏好、移动端窄屏布局。
+| 能力 | 说明 |
+|---|---|
+| **一键触发** | 点一下猫爪即投递，没有面板、没有模式选择、没有二次确认。 |
+| **撒娇语气** | `喵～` / `喵呜～` / `Meow~` / `にゃーん`，最多一个猫 emoji，两行以内。不是冷冰冰的「喵。」 |
+| **顺手报进度** | 同一句话里说明它正在做什么（只描述当前步骤，不剧透计划）。 |
+| **不挡界面** | 注册在 `conversation.input.right`，是 composer 工具栏的流内元素——不覆盖队列卡片、图标或发送键。 |
+| **温和优先** | 默认走 `session/prompt` 的 `mode: 'steer'`：不取消当前工具，等下一个模型步骤生效。 |
+| **可中断** | `Shift+点击` 才走 `session/cancel` → 等待空闲 → 重新投递，破坏性操作需要显式修饰键。 |
+| **有反馈** | 成功/失败都以按钮上方的小气泡呈现，2.8 秒后消失。看到气泡才算真投递了。 |
+| **权限感知** | 没有 `session/prompt` 权限时直接不渲染；中断权限缺失时给出解释而不是静默失败。 |
+| **会话隔离** | 每个 UI 槽的回调绑定当前 `sessionId`，不会误触其他会话。 |
 
-## 安装（推荐 DSH 0.2.x）
+## 快速开始
 
-本包已经包含编译好的 `lib/client.js`，安装时**不需要额外构建**。
+### 1. 安装
 
-1. 解压 `dsh-mew-key.zip` 到你希望保留的路径（例如 `~/dsh-plugins/dsh-mew-key/`）。
-2. 用绝对路径安装：
-
-   ```bash
-   dsh plugin --profile web add file:/absolute/path/to/dsh-mew-key
-   ```
-
-   如果从 DSH 仓库源码启动，也可以用 `pnpm dsh plugin --profile web add ...`。
-
-3. 重新启动 DSH Web profile（插件 Host/Client 引导图在启动时装配）：
-
-   ```bash
-   dsh web
-   ```
-
-4. 打开某个普通 Session，在输入框右侧发送按钮正上方找到 **猫爪按钮**，点击后选择模式并按下喵键。
-
-5. 卸载：
-
-   ```bash
-   dsh plugin --profile web remove dsh-mew-key
-   ```
-
-也可以将 `cordis.patch.yml` 作为配置层使用。此包自带 `dsh.bundle.patch` 声明，安装到 profile 时会自动插入 `mew-key` Cordis 插件行。
-
-## 使用边界
-
-- **温和插话不是强制抢占：** 如果 Agent 正在执行一个长时间阻塞的工具，`steer` 要等到后续模型步骤才会被处理。
-- **立即中断不是无损暂停：** `cancel` 会中止活跃轮次，可能使当前工具操作被取消。**不自动恢复之前的任务**；后续是否重试由用户决定。
-- **不会保证只有一个词：** 文本要求由模型执行，模型有可能不服从或额外输出。若需要确定性「喵」，应由 UI 自行输出，而不是调用模型。
-- **无法保证子进程立即退出：** DSH 取消操作是运行时请求；已启动的外部工具能否立即终止取决于工具取消机制。
-- **没有偷偷操作其他 Session：** 每个 UI 槽的回调固定绑定当前 `sessionId`。
-
-## 源码与结构
-
-```text
- dsh-mew-key/
- ├── package.json          # DSH bundle + browser client manifest
- ├── cordis.patch.yml      # Cordis 插入项
- ├── index.js              # Node Host 半部：无状态入口
- ├── lib/client.js         # 可直接装载的编译版客户端
- ├── src/client.tsx        # React TSX 源码 / UI + 操作逻辑
- ├── build.mjs             # 重新编译
- ├── preview.html          # v0.1.1 旧版静态预览；不反映 v0.1.2 新位置
- └── tests/bridge.test.mjs # 模拟 Remote 的桥接行为测试
-```
-
-开发时有 TypeScript 的情况下：
+包内已包含编译好的 `lib/client.js`，安装时不需要额外构建。
 
 ```bash
-npm run build   # 需 Node 能解析 'typescript'
+dsh plugin --profile web add file:/absolute/path/to/dsh-mew-key
+```
+
+从 DSH 仓库源码启动时，等价写法是 `pnpm dsh plugin --profile web add ...`。
+
+### 2. 重启
+
+```bash
+dsh web
+```
+
+插件 Host/Client 的引导图在启动时装配，改完客户端代码必须重启，浏览器刷新不够。
+
+### 3. 按一下
+
+打开任意普通 Session，输入框工具栏里、模型选择器左侧就是猫爪。
+
+| 操作 | 效果 |
+|---|---|
+| 单击 | 温和插话：下一次模型步骤喵一声 + 说明当前进度 |
+| `Shift+点击` | 先中断当前轮次，等它空闲后再喵（键盘用 `Shift+Enter`） |
+
+也可以把 `cordis.patch.yml` 当作配置层使用：包内自带 `dsh.bundle.patch` 声明，安装到 profile 时会自动插入 `mew-key` 插件行。
+
+卸载：
+
+```bash
+dsh plugin --profile web remove dsh-mew-key
+```
+
+## 设计说明
+
+几个不那么显然的选择，以及为什么：
+
+**为什么用 `steer` 而不是直接 cancel。** `steer` 是官方给「人在 Agent 干活时插话」准备的投递模式，不会终止正在运行的工具。实测其客户端语义是 `running ? (mode==='steer' ? 'steering' : 'queued') : 'transcript'`——**空闲时它等价于普通新消息**，所以单击在任何状态下都成立。
+
+**为什么挂在 `conversation.input.right` 而不是紧贴发送键。** DSH 工具栏的结构是 `[right 槽][model 选择器][activity 槽][发送键]`。模型与发送键之间只有 `conversation.input.activity`，那是单占位槽，被活动指示器占用时会触发"隐藏普通附件控件"的展开行为——抢它会把界面搞坏。`input.right` 是列表槽，插进去不覆盖任何东西，代价是猫爪落在模型选择器左侧而非紧贴发送键。
+
+**为什么猫叫交给模型说。** UI 自己打印「喵～」是确定的，但那就不再是 Agent 在回应你了。当前实现允许语气漂移：它可能说「喵～ 在改测试呀」，也可能突然变得浮夸。这是有意的取舍。
+
+**为什么需要重启。** 客户端 bundle 在 `dsh web` 启动时装配进浏览器加载图，热更新不覆盖已加载的插件模块。
+
+## 已知边界
+
+- **单击没有二次确认。** 误触会真的给 Agent 插一条话；`Shift+点击` 更重，它真的会取消当前轮次。
+- **温和插话不是抢占。** Agent 卡在长阻塞工具里时，`steer` 要等后续模型步骤才被处理。
+- **中断不是无损暂停。** `cancel` 可能使当前工具操作被取消，且**不会自动恢复**原任务，是否重试由你决定。
+- **「正在做什么」是模型的自述。** 它总结的是自己理解的当前步骤，不是工具进程的实时状态；真实状态请看会话流。
+- **语气和长度不可控。** 全是对模型的文字要求，它可能不服从、写长、或干脆照旧冷淡。
+- **子进程未必立刻退出。** 取消是运行时请求，外部工具能否立即终止取决于工具自身的取消机制。
+- **版本兼容以实测为准。** 槽位与 API 依据 DSH 0.2.x 的实现确认，换大版本需要按实际 DOM/类型微调。
+
+## 开发
+
+```text
+dsh-mew-key/
+├── package.json          # DSH bundle + browser client manifest
+├── cordis.patch.yml      # Cordis 插入项
+├── index.js              # Node Host 半部：无状态入口
+├── src/client.tsx        # React TSX 源码 / UI + 操作逻辑
+├── lib/client.js         # 可直接装载的编译版客户端
+├── build.mjs             # TSX → DSH ModuleLoader 包装
+├── preview.html          # 脱离 DSH 的静态交互预览
+└── tests/bridge.test.mjs # Remote 桥接 + 桩 React 渲染测试
+```
+
+```bash
+npm run build   # 需要能解析 'typescript'
 npm test        # 只用 Node 标准库
 ```
 
-在没有依赖安装权限的环境里，`lib/client.js` 已随包交付。`build.mjs` 只做 TSX→CommonJS 编译，不做完整的 DSH 型别检查或浏览器集成测试。
+当前 **12 个测试全部通过**，覆盖：Remote 调用顺序与失败传播、提示词内容、槽位选择、依赖声明，以及用桩 React 运行时真实渲染组件确认「只有一个按钮、单击走 gentle、Shift+点击走 interrupt」。
 
-## 已验证与未验证
+注意 `build.mjs` 只做 TSX→CommonJS 转译，不做类型检查；槽位名或属性名写错在编译期不会报错。`lib/client.js` 随包交付，可不在本机构建。
 
-- ✅ 已按照 DSH 官方公开 `ctx.slots.inject`、`ctx.remote.session.cancel/wait/prompt` 接口实现。
-- ✅ 8 个测试通过（Remote 行为与依赖声明；尚无真实 Web E2E）。
-- ✅ TSX 语法编译、JS 语法检查通过。
-- ⚠️ 当前环境不能启动真实 DSH Web，**尚未进行真实浏览器 E2E、版本兼容性实机测试**。如果目标 DSH 使用了不同的客户端模块格式或 Slot API，需要按该版本微调。
+## 参考
 
-## 参考接口
+- [Slots 子系统](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/slots)
+- [Core 子系统](https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/core)
+- [Session Controller 类型](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/api/session-controller/src/types.ts)
 
-- https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/slots
-- https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/core
-- https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/api/session-controller/src/types.ts
-- https://deepseek-harness.github.io/deepseek-harness/en/develop/basic/
+## 更新日志
 
-MIT · Mew Key v0.1.2
+见 [CHANGELOG.md](CHANGELOG.md)。
 
+## 许可
 
-## v0.1.1 修复说明
-
-修复点击 Mew Key 后出现 `cannot get property "remote" without inject` 的问题：
-
-- Client Cordis 插件明确声明 `inject = ["slots", "remote", "remote.session"]`。
-- `dsh.client.inject` 增加 `@deepseek-ai/dsh-api-remotes`，确保 Browser 插件依赖装载链完整。
-- 增加严格依赖访问模拟测试：模拟 Cordis 拒绝读取未声明的父服务。
-
-如果是从 v0.1.0 升级，推荐移除旧插件、重新添加 v0.1.1，**并重启 DSH Web**，避免继续使用缓存中的旧客户端代码。
-
-此修复针对已定位的 Cordis 注入异常；尚未在真实 DSH Web 实例中验证所有会话操作。
-
-
-## v0.1.2 UI 调整
-
-- Slot 从 `conversation.session.header.actions` 切换到 `conversation.input.overlay`。
-- 发送按钮上方添加纯猫爪图标的圆形浮动按钮（无文字标签，保留 tooltip）。
-- 弹出层改为小型浮层，保留原有温和插话与立即中断行为。
-- 提供的 `lib/client.js` 已重新编译；应用补丁后无需安装额外 TypeScript 依赖，重启 `dsh web` 即可。
-- `preview.html` 暂未更新，仍是旧版的静态预览；以 DSH 实际界面为准。
+[MIT](LICENSE)

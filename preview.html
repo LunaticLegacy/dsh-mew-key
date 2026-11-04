@@ -1,39 +1,119 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Mew Key — UI Preview</title><style>
-body {margin:0;min-height:100vh;background:radial-gradient(ellipse at 25% 8%,#322943 0%,#151727 55%,#11131e 100%);color:#eee;font-family:Inter,"Segoe UI",system-ui,sans-serif}
-.demo-app{display:flex;min-height:100vh}.demo-sidebar{width:224px;box-sizing:border-box;border-right:1px solid #ffffff13;background:#161822;padding:25px 18px}.demo-logo{color:#d6c8ee;font-weight:800;letter-spacing:.04em;margin-bottom:28px}.demo-side{padding:11px;margin:5px 0;border-radius:10px;color:#898fa6;font-size:13px}.demo-side.active{background:#ffffff0d;color:#f0d0e6}.demo-main{flex:1;display:flex;flex-direction:column}.demo-header{height:62px;border-bottom:1px solid #ffffff10;display:flex;align-items:center;gap:20px;padding:0 26px}.demo-head{font-size:13px;color:#dcd6e8}.demo-pad{margin:auto;text-align:center;color:#716f87;line-height:2}.demo-bubble{border:1px solid #ffffff16;border-radius:14px;padding:12px 18px;color:#a2a6be;font-size:13px}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mew Key — one-click preview</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 30% 0%,#2a2440 0%,#171927 52%,#111320 100%);color:#e9e9f6;font:14px/1.6 Inter,"Segoe UI",system-ui,sans-serif}
+  .shell{max-width:720px;margin:0 auto;padding:32px 20px 40px;display:flex;flex-direction:column;gap:18px;min-height:100vh}
+  h1{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#e7b3d4;margin:0}
+  .hint{font-size:12px;color:#8e93ad;margin:0}
+  .thread{flex:1;display:flex;flex-direction:column;gap:10px;padding:18px 0}
+  .msg{max-width:78%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.65}
+  .msg.user{align-self:flex-end;background:linear-gradient(180deg,#3a3f66,#33385c);color:#f2f2fb}
+  .msg.agent{align-self:flex-start;background:#1e2133;border:1px solid #ffffff0f}
+  .msg.agent b{color:#ffd4ea}
 
-.mew-trigger{appearance:none;border:1px solid rgba(224,145,189,.24);display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border-radius:999px;background:linear-gradient(145deg,rgba(253,226,244,.15),rgba(174,123,244,.10));color:var(--dsw-alias-label-secondary,#ded4ee);cursor:pointer;font-size:12px;font-weight:640;letter-spacing:.012em;white-space:nowrap;transition:all .22s ease}
-.mew-trigger:hover{border-color:#dc91c0;color:#f7b6d9;background:rgba(242,129,191,.13);box-shadow:0 0 0 4px rgba(253,156,206,.055)}
-.mew-trigger:focus-visible,.mew-button:focus-visible,.mew-mode:focus-visible,.mew-close:focus-visible{outline:2px solid #f0a3d8;outline-offset:3px}
-.mew-trigger svg{width:17px;height:17px;color:#f5a4cb}
-.mew-backdrop{position:fixed;z-index:1100;inset:0;background:rgba(9,9,18,.68);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);display:flex;align-items:center;justify-content:center;padding:22px;animation:mew-fade .18s ease-out}
-.mew-panel{width:min(420px,100%);position:relative;overflow:hidden;isolation:isolate;color:#f5effc;border-radius:26px;border:1px solid rgba(246,208,240,.17);background:linear-gradient(160deg,#292033,#1b1929 47%,#181c2a 100%);box-shadow:0 32px 90px rgba(0,0,0,.55),0 0 72px rgba(186,101,164,.09);padding:28px 28px 24px;animation:mew-pop .26s cubic-bezier(.2,.9,.2,1)}
-.mew-panel::before{content:'';pointer-events:none;position:absolute;z-index:-1;inset:-120px -80px auto;height:260px;background:radial-gradient(circle at center,rgba(255,151,207,.18),transparent 69%)}
-.mew-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.mew-brand{font:700 10px/1.4 ui-sans-serif,system-ui;letter-spacing:.22em;color:#e7b3d4;text-transform:uppercase}
-.mew-online{display:flex;align-items:center;gap:6px;font-size:11px;color:#a9a4b8}.mew-dot{height:6px;width:6px;border-radius:50%;background:#85d6bd;box-shadow:0 0 9px #85d6bd99}
-.mew-close{position:absolute;top:24px;right:25px;width:26px;height:26px;border:0;border-radius:8px;background:rgba(255,255,255,.05);color:#c8becd;cursor:pointer;font-size:20px;line-height:20px}
-.mew-hero{display:grid;justify-items:center;margin:16px 0 9px}
-.mew-orbit{width:124px;height:124px;display:grid;place-items:center;position:relative;border-radius:50%;background:radial-gradient(circle at 30% 25%,#754e78,#432f5d 54%,#29273f);box-shadow:0 0 0 10px rgba(251,178,224,.045),0 0 0 21px rgba(242,157,221,.025),inset 0 2px 16px rgba(255,255,255,.1),0 13px 35px rgba(9,4,25,.35)}
-.mew-orbit::after{content:'✦';position:absolute;right:-12px;top:9px;color:#f4b8dc;font-size:17px}.mew-orbit::before{content:'✧';position:absolute;left:-12px;bottom:17px;color:#a6a0f8;font-size:22px}
-.mew-orbit svg{height:73px;width:73px;filter:drop-shadow(0 6px 14px rgba(29,17,40,.35))}.mew-orbit.mew-bounce svg{animation:mew-paw .55s cubic-bezier(.3,.7,.2,1)}
-.mew-title{margin:18px 0 2px;font-weight:800;font-size:30px;letter-spacing:-.04em;line-height:1.2;color:#fff6ff}
-.mew-subtitle{font-size:12px;line-height:1.6;color:#aea7ba;text-align:center;max-width:280px;margin:6px 0 20px}
-.mew-label{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#9b91a9;font-weight:750;margin-bottom:9px}
-.mew-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.mew-mode{min-height:78px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.035);color:#d9cfe3;padding:12px;text-align:left;cursor:pointer;transition:border-color .16s,background .16s,transform .16s}
-.mew-mode:hover{background:rgba(245,179,221,.085)}.mew-mode[data-active=true]{border-color:rgba(255,164,218,.7);background:linear-gradient(165deg,rgba(255,151,210,.15),rgba(172,114,239,.1));box-shadow:inset 0 0 0 1px rgba(255,198,228,.075)}
-.mew-mode-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:750}.mew-mode-symbol{font-size:15px;color:#ffc0e2}.mew-mode-detail{font-size:10.5px;line-height:1.45;color:#a99eb6;margin-top:7px}
-.mew-note{margin:13px 0 14px;padding:10px 12px;border-radius:11px;color:#c2b6cb;font-size:11px;line-height:1.65;background:rgba(253,246,255,.045);border:1px solid rgba(255,255,255,.045)}
-.mew-note strong{font-weight:700;color:#ebcae1}
-.mew-button{display:flex;width:100%;min-height:48px;align-items:center;justify-content:center;gap:9px;border:0;border-radius:13px;background:linear-gradient(105deg,#ffb6d8,#eab5f5 58%,#c4b3ff);color:#36263e;font-size:14px;font-weight:850;letter-spacing:.025em;cursor:pointer;box-shadow:0 8px 28px rgba(218,138,211,.17);transition:transform .17s,filter .17s}
-.mew-button:hover:not(:disabled){filter:brightness(1.065);transform:translateY(-1px)}.mew-button:active:not(:disabled){transform:translateY(1px)}.mew-button:disabled{opacity:.67;cursor:wait}
-.mew-foot{display:flex;justify-content:center;gap:8px;align-items:center;margin-top:15px;font-size:10px;color:#8f879d}
-.mew-success{margin-top:12px;font-size:11px;color:#c2efdf;text-align:center;line-height:1.5}.mew-error{margin-top:12px;font-size:11px;color:#ffc5c5;text-align:center;line-height:1.5}
-@keyframes mew-fade{from{opacity:0}to{opacity:1}}@keyframes mew-pop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes mew-paw{0%{transform:scale(1) rotate(0)}34%{transform:scale(.8) rotate(-16deg)}70%{transform:scale(1.17) rotate(11deg)}100%{transform:scale(1) rotate(0)}}
-@media(prefers-reduced-motion:reduce){.mew-trigger,.mew-panel,.mew-backdrop,.mew-orbit svg{animation:none!important;transition:none!important}}
-@media(max-width:460px){.mew-trigger span{display:none}.mew-trigger{padding:6px}.mew-panel{padding:23px 19px 20px}.mew-title{font-size:26px}}
-</style></head><body><div class="demo-app"><aside class="demo-sidebar"><div class="demo-logo">✧ DeepSeek Harness</div><div class="demo-side active">◈ Conversation</div><div class="demo-side">⌘ Workspaces</div><div class="demo-side">⚙ Plugins</div></aside><main class="demo-main"><header class="demo-header"><span class="demo-head">Agent Session / Mew Key</span><button class="mew-trigger" id="launch"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="7" cy="7" r="2" fill="#ffcee9"/><circle cx="13" cy="5" r="2" fill="#ffcee9"/><circle cx="19" cy="8" r="2" fill="#ffcee9"/><path d="M6 16Q12 7 18 16Q21 22 12 21Q3 22 6 16Z" fill="#ffcee9"/></svg><span>Mew Key</span></button></header><section class="demo-pad"><div class="demo-bubble">Agent 正在处理你的代码……</div><p>这是独立视觉预览，不连接 DSH。</p></section></main></div>
-<div class="mew-backdrop" id="backdrop"><section class="mew-panel" role="dialog" aria-modal="true" aria-labelledby="mewtitle"><div class="mew-top"><span class="mew-brand">M E W · K E Y</span><span class="mew-online"><i class="mew-dot"></i> Session linked</span></div><button class="mew-close" type="button" aria-label="关闭" id="close">×</button><div class="mew-hero"><div class="mew-orbit" id="orb"><svg width="76" height="76" viewBox="0 0 96 96" fill="none"><path d="M29 55C23 61 18 66 19 74c2 10 12 11 21 7 5-2 11-2 16 0 9 4 20 3 22-7 2-8-4-14-11-20-8-7-13-17-20-17-8 0-12 11-18 18Z" fill="#FFCEE9"/><ellipse cx="20" cy="39" rx="9" ry="13" transform="rotate(-19 20 39)" fill="#FFCEE9"/><ellipse cx="41" cy="24" rx="9" ry="13" transform="rotate(-7 41 24)" fill="#FFCEE9"/><ellipse cx="64" cy="27" rx="9" ry="13" transform="rotate(17 64 27)" fill="#FFCEE9"/><ellipse cx="81" cy="45" rx="8" ry="12" transform="rotate(30 81 45)" fill="#FFCEE9"/></svg></div><h2 id="mewtitle" class="mew-title">按一下喵键</h2><p class="mew-subtitle">给正在努力工作的 Agent，一次毫无必要、但十分重要的喵。</p></div><div class="mew-label">选择喵叫方式 / MODE</div><div class="mew-modes" role="group"><button class="mew-mode" id="gentle" data-active="true"><span class="mew-mode-title"><span class="mew-mode-symbol">✦</span> 温和插话</span><div class="mew-mode-detail">下一模型步骤喵一下，再继续原任务</div></button><button class="mew-mode" id="interrupt" data-active="false"><span class="mew-mode-title"><span class="mew-mode-symbol">⌁</span> 立即中断</span><div class="mew-mode-detail">取消当前轮次，新一轮只说喵</div></button></div><div class="mew-note" id="note"><strong>安全模式</strong> · 不取消正在运行的工具；到下一步模型处理时插入一次性指令。模型是否准确照做取决于模型。</div><button class="mew-button" id="go" type="button">🐾　按下 Mew Key</button><div id="out"></div><div class="mew-foot"><span>● Agent 正在运行</span><span>·</span><span>当前 Session 专属</span></div></section></div>
-<script>const $=id=>document.getElementById(id);let mode='gentle';function choose(x){mode=x;$('gentle').dataset.active=String(x==='gentle');$('interrupt').dataset.active=String(x==='interrupt');$('out').textContent='';$('note').innerHTML=x==='gentle'?'<strong>安全模式</strong> · 不取消正在运行的工具；到下一步模型处理时插入一次性指令。模型是否准确照做取决于模型。':'<strong>中断模式</strong> · 请求停止当前轮次并等待空闲，再发起喵叫。不会自动恢复刚才的工作；长工具取消可能延迟。'}$('gentle').onclick=()=>choose('gentle');$('interrupt').onclick=()=>choose('interrupt');$('go').onclick=()=>{$('orb').classList.remove('mew-bounce');void $('orb').offsetWidth;$('orb').classList.add('mew-bounce');$('out').className='mew-success';$('out').textContent='✧ 喵！这是视觉演示，不会向 DSH 发送请求。'};$('close').onclick=()=>{$('backdrop').style.display='none'};$('launch').onclick=()=>{$('backdrop').style.display='flex'};document.addEventListener('keydown',e=>{if(e.key==='Escape')$('backdrop').style.display='none'});</script>
-</body></html>
+  .composer{position:relative;display:flex;flex-direction:column;gap:10px;border:1px solid #ffffff14;background:#191b28;border-radius:16px;padding:14px 12px 10px 16px}
+  .composer-text{color:#6f7590;font-size:13px;min-height:44px}
+  .composer-row{display:flex;align-items:center;gap:12px;min-width:0}
+  .chip{appearance:none;border:1px solid #ffffff14;background:#ffffff08;color:#b9bed6;border-radius:9px;padding:5px 9px;font-size:12px;cursor:default;white-space:nowrap}
+  .grow{flex:1}
+  .model{border:1px solid #ffffff14;background:#ffffff08;color:#c8cde3;border-radius:9px;padding:5px 10px;font-size:12px;white-space:nowrap}
+  .send{width:32px;height:32px;flex:none;border:0;border-radius:10px;background:#7e86ff;color:#111327;font-size:15px;cursor:pointer}
+
+  .mew-key-seat{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:0}
+  .mew-paw-fab{appearance:none;width:28px;height:28px;border:0;border-radius:999px;display:grid;place-items:center;cursor:pointer;color:#ffd4ea;background:linear-gradient(180deg,rgba(129,138,255,.92),rgba(104,109,236,.96));box-shadow:0 4px 12px rgba(19,22,52,.28),0 0 0 1px rgba(255,255,255,.08) inset;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+  .mew-paw-fab:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.06);box-shadow:0 6px 16px rgba(19,22,52,.32),0 0 0 1px rgba(255,255,255,.12) inset,0 0 0 3px rgba(129,138,255,.12)}
+  .mew-paw-fab:active:not(:disabled){transform:translateY(1px)}
+  .mew-paw-fab:focus-visible{outline:2px solid #f0a3d8;outline-offset:3px}
+  .mew-paw-fab[data-busy=true]{cursor:progress;background:linear-gradient(180deg,rgba(246,151,203,.96),rgba(225,113,188,.96));animation:mew-paw-pulse .9s ease-in-out infinite}
+  .mew-paw-fab svg{width:16px;height:16px;filter:drop-shadow(0 2px 6px rgba(41,26,76,.24))}
+  .mew-toast{position:absolute;right:0;bottom:calc(100% + 8px);width:max-content;max-width:232px;border-radius:12px;padding:7px 10px;font-size:11px;line-height:1.45;border:1px solid rgba(255,255,255,.08);background:linear-gradient(165deg,rgba(33,35,57,.96),rgba(22,24,40,.98));backdrop-filter:blur(14px);box-shadow:0 14px 34px rgba(0,0,0,.35);animation:mew-toast-in .18s ease-out}
+  .mew-toast[data-kind=success]{color:#cbf4df}
+  .mew-toast[data-kind=error]{color:#ffc3cc}
+  @keyframes mew-paw-pulse{0%,100%{transform:scale(1)}50%{transform:scale(.9)}}
+  @keyframes mew-toast-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.mew-paw-fab,.mew-toast{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>Mew Key · 一键预览</h1>
+  <p class="hint">静态预览，不连接 DSH。猫爪在输入框工具栏内、模型选择器左边、与发送键同一行。单击 = 温和插话；<kbd>Shift</kbd>+点击 = 先中断再喵。</p>
+
+  <div class="thread" id="thread">
+    <div class="msg user">帮我把 tests 里的 mock 换成真实 fixture。</div>
+    <div class="msg agent">正在看 <code>tests/bridge.test.mjs</code>，先确认现有 mock 覆盖了哪些调用……</div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-text">输入消息…</div>
+    <div class="composer-row">
+      <button class="chip" type="button">＋</button>
+      <span class="chip">工作区内修改</span>
+      <div class="grow"></div>
+      <div class="mew-key-seat">
+        <div id="toast"></div>
+        <button class="mew-paw-fab" id="paw" type="button" aria-label="喵一下" title="喵一下（Shift+点击：先中断再喵）">
+          <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+            <path d="M29 55C23 61 18 66 19 74c2 10 12 11 21 7 5-2 11-2 16 0 9 4 20 3 22-7 2-8-4-14-11-20-8-7-13-17-20-17-8 0-12 11-18 18Z" fill="currentColor"/>
+            <ellipse cx="20" cy="39" rx="9" ry="13" transform="rotate(-19 20 39)" fill="currentColor"/>
+            <ellipse cx="41" cy="24" rx="9" ry="13" transform="rotate(-7 41 24)" fill="currentColor"/>
+            <ellipse cx="64" cy="27" rx="9" ry="13" transform="rotate(17 64 27)" fill="currentColor"/>
+            <ellipse cx="81" cy="45" rx="8" ry="12" transform="rotate(30 81 45)" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+      <button class="model" type="button">DeepSeek-V4.1-Flash · High</button>
+      <button class="send" type="button" aria-label="发送">↑</button>
+    </div>
+  </div>
+</div>
+<script>
+  const thread = document.getElementById('thread')
+  const paw = document.getElementById('paw')
+  const toastBox = document.getElementById('toast')
+  let timer, busy = false
+
+  function say(text, kind){
+    clearTimeout(timer)
+    toastBox.className = 'mew-toast'
+    toastBox.dataset.kind = kind
+    toastBox.setAttribute('role', kind === 'error' ? 'alert' : 'status')
+    toastBox.textContent = (kind === 'error' ? '操作未完成：' : '✧ ') + text
+    timer = setTimeout(() => { toastBox.textContent = ''; toastBox.className = '' }, 2800)
+  }
+
+  function bubble(html){
+    const el = document.createElement('div')
+    el.className = 'msg agent'
+    el.innerHTML = html
+    thread.appendChild(el)
+  }
+
+  paw.addEventListener('click', () => {
+    if (busy) return
+    busy = true
+    paw.dataset.busy = 'true'
+    paw.disabled = true
+    setTimeout(() => {
+      bubble('<b>喵～</b>正在把 tests 里的 mock 换成真实 fixture 呀。')
+      say('喵～ 已插话：下一步会撒娇一声。', 'success')
+      paw.dataset.busy = 'false'
+      paw.disabled = false
+      busy = false
+    }, 550)
+  })
+
+  // 便于截图/演示：打开 preview.html#demo 会直接呈现「按过一次」的状态
+  if (location.hash === '#demo') {
+    bubble('<b>喵～</b>正在把 tests 里的 mock 换成真实 fixture 呀。')
+    say('喵～ 已插话：下一步会撒娇一声。', 'success')
+  }
+</script>
+</body>
+</html>

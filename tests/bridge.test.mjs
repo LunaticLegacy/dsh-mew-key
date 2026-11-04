@@ -17,7 +17,7 @@ function boot(mocks = {}) {
   const ctx = {
     remote:{session:remote},
     effect: (cb)=>{clean=cb()},
-    slots:{inject:(key,cb)=>{assert.equal(key,'conversation.input.overlay');cb()},register:(desc,component)=>{registration=desc;assert.equal(desc.id,'mew-key');return()=>{}}},
+    slots:{inject:(key,cb)=>{assert.equal(key,'conversation.input.right');cb()},register:(desc,component)=>{registration=desc;assert.equal(desc.id,'mew-key');return()=>{}}},
   }
   runInNewContext(code, {
     window: {__ModuleLoader__: {load: ({id,factory}) => { assert.equal(id,'dsh-mew-key'); pluginExports=factory(name=>{if (name==='react/jsx-runtime') return {jsx(){},jsxs(){}}; return {}}) }}},
@@ -63,6 +63,99 @@ test('cancel refusal blocks submission', async()=>{
 test('prompt refusal propagates error', async()=>{
   const app=boot({prompt:{ok:false,error:{message:'not writable'}}})
   await assert.rejects(()=>app.fire('gentle'),/not writable/)
+})
+
+test('one-click prompts: meow plus a one-line status of what the agent is doing', ()=>{
+  const app=boot()
+  assert.match(app.modeText.gentle,/what you are doing right now/)
+  assert.match(app.modeText.gentle,/one short cat vocalization/)
+  assert.match(app.modeText.interrupt,/what you were doing before the stop/)
+  assert.match(app.modeText.gentle,/cute cat voice/)
+  assert.match(app.modeText.interrupt,/cute cat voice/)
+  assert.match(app.modeText.gentle,/喵～/)
+  assert.doesNotMatch(app.modeText.gentle,/At your next safe model step/)
+})
+
+// Renders the plugin component with a stub React hook runtime: the other tests
+// never render, so a typo in the hand-written lib/client.js element tree would
+// slip through them unnoticed.
+function bootRender() {
+  const code = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+  const state = []
+  let cursor = 0
+  let registration
+  const react = {
+    createElement: (type, props, children) => ({ type, props: props ?? {}, children }),
+    useState: init => {
+      const idx = cursor++
+      if (!(idx in state)) state[idx] = init
+      return [state[idx], next => { state[idx] = next }]
+    },
+    useRef: init => ({ current: init }),
+    useEffect: () => {},
+  }
+  let pluginExports = {}
+  runInNewContext(code, {
+    window: {
+      __ModuleLoader__: { load: ({ id, factory }) => {
+        assert.equal(id, 'dsh-mew-key')
+        pluginExports = factory(name => name === 'react' ? react : {})
+      } },
+      setTimeout: () => 0,
+      clearTimeout: () => {},
+    },
+    require: name => name === 'react' ? react : {},
+    crypto: { randomUUID: () => '11111111-2222-4333-8444-555555555555' },
+    document: { createElement: () => ({ dataset: {}, remove() {} }), head: { appendChild() {} } },
+    console,
+  })
+  pluginExports.apply({
+    effect: cb => cb(),
+    slots: {
+      inject: (_key, cb) => cb(),
+      register: (desc, component) => { registration = { ...desc, component }; return () => {} },
+    },
+    remote: { session: {} },
+  })
+  const Component = registration.component
+  return props => { cursor = 0; return Component(props) }
+}
+
+test('renders a single paw button and one click fires gentle without opening a panel', async()=>{
+  const render = bootRender()
+  const calls = []
+  const props = { sessionId: 'session-xyz', useSession: () => false, useAccess: () => true, fire: async mode => { calls.push(mode) } }
+
+  const tree = render(props)
+  const kids = tree.children.flat()
+  const buttons = kids.filter(k => k.type === 'button')
+  assert.equal(buttons.length, 1, 'no panel, exactly one control')
+  assert.equal(buttons[0].props['aria-label'], '喵一下')
+
+  await buttons[0].props.onClick({ shiftKey: false })
+  assert.deepEqual(calls, ['gentle'])
+
+  const after = render(props).children.flat()
+  const toast = after.find(k => k.props?.className === 'mew-toast')
+  assert.ok(toast, 'click renders a result toast')
+  assert.equal(toast.props['data-kind'], 'success')
+})
+
+test('shift-click sends the interrupt path', async()=>{
+  const render = bootRender()
+  const calls = []
+  const props = { sessionId: 'session-xyz', useSession: () => true, useAccess: () => true, fire: async mode => { calls.push(mode) } }
+  const button = render(props).children.flat().find(k => k.type === 'button')
+  await button.props.onClick({ shiftKey: true })
+  assert.deepEqual(calls, ['interrupt'])
+})
+
+test('registers inline in the composer toolbar, not as an overlay', ()=>{
+  for (const file of ['../src/client.tsx', '../lib/client.js']) {
+    const source = readFileSync(new URL(file, import.meta.url), 'utf8')
+    assert.match(source, /conversation\.input\.right/, `${file} targets the inline slot`)
+    assert.doesNotMatch(source, /conversation\.input\.overlay/, `${file} must not use the overlay slot`)
+  }
 })
 
 test('declares both parent remote service and remote.session nested service', ()=>{
