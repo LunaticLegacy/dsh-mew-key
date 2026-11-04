@@ -1,0 +1,42 @@
+{
+  "name": "dsh-mew-key",
+  "version": "0.1.2",
+  "description": "Mew Key — a floating paw button above the composer submit action for DeepSeek Harness Web.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "lib/client.js",
+    "src/client.tsx",
+    "cordis.patch.yml",
+    "README.md",
+    "preview.html"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node ./build.mjs",
+    "test": "node --test ./tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0 <0.3.0"
+  }
+}
